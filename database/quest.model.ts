@@ -10,12 +10,15 @@ const QuestSchema = new Schema<IQuest>(
     {
         name: {
             type: String,
+            required: true,
         },
         category: {
             type: String,
+            required: true,
         },
         deps: {
             type: [String],
+            required: true,
         }
     }
 )

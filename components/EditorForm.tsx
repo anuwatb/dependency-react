@@ -20,9 +20,11 @@ const EditorForm = (data: Data) => {
     // }, [name, deps]);
     
     const handleOpen = async () => {
-        // alert('The unsaved diagram will be deleted');
-        await openExistingDiagram(data);
-        createSankey('editor', data, { setForm, setName, setNameNew, setDeps });
+        if (window.confirm('The unsaved diagram (if any) will be deleted.')) {
+            const result = await openExistingDiagram(data);
+            if (result?.success) createSankey('editor', data, { setForm, setName, setNameNew, setDeps });
+            else alert(result?.error);
+        }
     };
     
     const handleAdd = () => {
@@ -109,9 +111,10 @@ const EditorForm = (data: Data) => {
         createSankey('editor', data, { setForm, setName, setNameNew, setDeps });
     };
     
-    const handleUpload = () => {
-        modifyCollection(data.nodes);
-        // successfully uploaded
+    const handleUpload = async () => {
+        const result = await modifyCollection(data.nodes);
+        if (result.success) alert('Successfully uploaded');
+        else alert(result.error);
     };
     
     const handleDownload = () => {

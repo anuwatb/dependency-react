@@ -7,5 +7,10 @@ export const modifyCollection = async (documents: object[]) => {
     await connectDB();
 
     await Quest.deleteMany({});
-    await Quest.create(documents);
+    try {
+        await Quest.create(documents);
+        return { success: true };
+    } catch (e) {
+        return { success: false, error: 'Failed to upload' };
+    }
 };

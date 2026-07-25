@@ -3,8 +3,8 @@
 import { useState } from "react";
 import Image from "next/image";
 import { Data } from "@/app/page";
-import { createSankey, toJSON } from "@/lib/actions/diagram.actions";//, openExistingDiagram
-// import { modifyCollection } from "@/lib/actions/quest.actions";
+import { createSankey, openExistingDiagram, toJSON } from "@/lib/actions/diagram.actions";
+import { modifyCollection } from "@/lib/actions/quest.actions";
 
 const EditorForm = (data: Data) => {
     const [name, setName] = useState('');
@@ -19,11 +19,13 @@ const EditorForm = (data: Data) => {
     //     else setAddDisabled(false);
     // }, [name, deps]);
     
-    // const handleOpen = async () => {
-    //     // alert('The unsaved diagram will be deleted');
-    //     await openExistingDiagram(data);
-    //     createSankey('editor', data, { setForm, setName, setNameNew, setDeps });
-    // };
+    const handleOpen = async () => {
+        if (window.confirm('The unsaved diagram (if any) will be deleted.')) {
+            const result = await openExistingDiagram(data);
+            if (result?.success) createSankey('editor', data, { setForm, setName, setNameNew, setDeps });
+            else alert(result?.error);
+        }
+    };
     
     const handleAdd = () => {
         const depsArray = deps.split(',');
@@ -109,10 +111,11 @@ const EditorForm = (data: Data) => {
         createSankey('editor', data, { setForm, setName, setNameNew, setDeps });
     };
     
-    // const handleUpload = () => {
-    //     modifyCollection(data.nodes);
-    //     // successfully uploaded
-    // };
+    const handleUpload = async () => {
+        const result = await modifyCollection(data.nodes);
+        if (result.success) alert('Successfully uploaded');
+        else alert(result.error);
+    };
     
     const handleDownload = () => {
         const blobData = JSON.stringify(data.nodes);
@@ -120,20 +123,20 @@ const EditorForm = (data: Data) => {
     };
     
     const actions = [
-        // { id: 'upload', label: 'UPLOAD TO MONGODB', execute: handleUpload },
+        { id: 'upload', label: 'UPLOAD TO MONGODB', execute: handleUpload },
         { id: 'download', label: 'DOWNLOAD AS TEXT FILE', execute: handleDownload }
     ];
     const [currentAction, setCurrentAction] = useState(actions[0]);
 
     return (<>
-        {/* <div className="px-gutter">
+        <div className="px-gutter">
             <div 
                 className="p-3 rounded-xl border border-outline-variant"
                 onClick={handleOpen}
             >
                 <span className="font-mono-label text-mono-label text-on-surface">Genshin Impact Quests</span>
             </div>
-        </div> */}
+        </div>
         <div id="node-input" className="p-gutter space-y-4">
             <input
                 disabled={form == 'delete'}

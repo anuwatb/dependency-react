@@ -119,8 +119,9 @@ export const openExistingDiagram = async (data: Data) => {
                 deps: quest.deps
             });
         });
+        return { success: true };
     } catch (error) {
-        console.error(error);
+        return { success: false, error: error };
     }
 };
 

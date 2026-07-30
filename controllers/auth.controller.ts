@@ -20,6 +20,7 @@ export const signIn = async (formData: FormData) => {
     const { email, password } = validatedFileds.data;
     
     const user = await authenticateUser({ email: email, password: password });
+    if (user.message) return { success: false, error: user.message };
     
     // Create user session
     const token = jwttoken.sign({
@@ -29,6 +30,7 @@ export const signIn = async (formData: FormData) => {
     cookieStore.set('token', token, {
         httpOnly: true,
         sameSite: 'strict',
+        secure: process.env.NODE_ENV == 'production',
     });
     
     redirect('/');

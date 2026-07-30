@@ -7,14 +7,14 @@ export const authenticateUser = async ({ email, password }: { email: string, pas
     try {
         const [existingUser] = await db.select().from(users).where(eq(users.email, email)).limit(1);
     
-        if (!existingUser) return { role: 'user' };
+        if (!existingUser) return { message: 'User not founded.' };
         
         const isPasswordValid = await bcrypt.compare(password, existingUser.password);
         
         return isPasswordValid ? {
             role: existingUser.role
         } : {
-            role: 'user'
+            message: 'Password not valid.'
         };
     } catch (e) {
         throw e;

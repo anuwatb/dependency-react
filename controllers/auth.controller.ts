@@ -20,7 +20,7 @@ export const signIn = async (formData: FormData) => {
     const { email, password } = validatedFileds.data;
     
     const user = await authenticateUser({ email: email, password: password });
-    if (user.message) return { success: false, error: user.message };
+    if ('message' in user) return { success: false, error: user.message };
     
     // Create user session
     const token = jwttoken.sign({

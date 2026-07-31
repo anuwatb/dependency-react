@@ -6,7 +6,11 @@ import { signInSchema } from "@/validations/auth.validation";
 import { authenticateUser } from "@/services/auth.service";
 import { jwttoken } from "@/utils/jwt";
 
-export const signIn = async (formData: FormData) => {
+interface FormState {
+    error?: string;
+}
+
+export const signIn = async (state: FormState | undefined, formData: FormData) => {
     // Validate form fields
     const validatedFileds = signInSchema.safeParse({
         email: formData.get('email'),
@@ -20,7 +24,7 @@ export const signIn = async (formData: FormData) => {
     const { email, password } = validatedFileds.data;
     
     const user = await authenticateUser({ email: email, password: password });
-    if ('message' in user) return { success: false, error: user.message };
+    if ('message' in user) return { error: user.message };
     
     // Create user session
     const token = jwttoken.sign({

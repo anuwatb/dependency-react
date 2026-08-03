@@ -1,7 +1,7 @@
 import { SankeyNode, SankeyLink } from "d3-sankey";
 import AccountLink from "@/components/AccountLink";
 import EditorForm from "@/components/EditorForm";
-// import UserForm from "@/components/UserForm";
+import UserForm from "@/components/UserForm";
 import { verifySession } from "@/middleware/auth.middleware";
 
 export interface MyNode extends SankeyNode<object, object> {
@@ -44,8 +44,7 @@ const Page = async () => {
             
             </main>
             <aside className="bg-surface-container border-l border-outline-variant w-80">
-                {/* {role == 'editor' ? <EditorForm {...data} /> : <UserForm data={data} status={status} />} */}
-                <EditorForm {...data} />
+                {role == 'editor' ? <EditorForm {...data} /> : <UserForm data={data} status={status} />}
             </aside>
         </div>
     </>)

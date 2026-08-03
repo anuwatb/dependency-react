@@ -55,6 +55,14 @@ body {
     @apply border border-outline-variant text-on-surface-variant font-mono-label py-2 rounded hover:bg-surface-variant;
   }
   
+  .signin-input {
+    @apply w-full bg-surface-container border border-outline-variant rounded-lg py-2.5 text-on-surface;
+  }
+  
+  .signin-label {
+    @apply font-mono-label text-mono-label text-on-surface-variant;
+  }
+  
   #delete-btn {
     @apply border border-error/50 text-error font-mono-label py-2 rounded hover:bg-error/10;
   }

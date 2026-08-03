@@ -31,6 +31,7 @@ const Page = () => {
                                     className="signin-input" 
                                 />
                             </div>
+                            {state?.zoderrors?.email && <p className="text-body-sm text-error">{state.zoderrors.email}</p>}
                             <div>
                                 <label htmlFor="password" className="signin-label">
                                     CREDENTIAL KEY
@@ -42,6 +43,7 @@ const Page = () => {
                                     className="signin-input" 
                                 />
                             </div>
+                            {state?.zoderrors?.password && <p className="text-body-sm text-error">{state.zoderrors.password}</p>}
                             {state?.error && <p className="text-body-sm text-error">{state.error}</p>}
                             <button type="submit" className="bg-primary-container hover:opacity-90 font-semibold py-3 rounded-lg">
                                 Sign in

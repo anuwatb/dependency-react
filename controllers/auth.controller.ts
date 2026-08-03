@@ -2,11 +2,16 @@
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import z from "zod";
 import { signInSchema } from "@/validations/auth.validation";
 import { authenticateUser } from "@/services/auth.service";
 import { jwttoken } from "@/utils/jwt";
 
 interface FormState {
+    zoderrors?: {
+        email?: string[];
+        password?: string[];
+    };
     error?: string;
 }
 
@@ -18,7 +23,7 @@ export const signIn = async (state: FormState | undefined, formData: FormData) =
     });
     
     if (!validatedFileds.success) {
-        return;
+        return { zoderrors: z.flattenError(validatedFileds.error).fieldErrors };
     }
     
     const { email, password } = validatedFileds.data;

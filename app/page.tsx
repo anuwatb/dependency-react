@@ -25,13 +25,6 @@ const Page = async () => {
     const session = await verifySession();
     const role: string = session.role;
     
-    const data: Data = {
-        nodes: [],
-        links: []
-    };
-        
-    const status: Status[] = [];
-    
     return (<>
         <header className="bg-surface border-b border-outline-variant fixed w-full flex items-center justify-between px-margin h-14">
             <span className="font-headline-md text-headline-md text-primary font-bold">Dependency Diagram</span>
@@ -40,12 +33,7 @@ const Page = async () => {
             </div>
         </header>
         <div className="flex flex-1 pt-14 h-full">
-            <main id="diagram" className="flex-1 bg-surface">
-            
-            </main>
-            <aside className="bg-surface-container border-l border-outline-variant w-80">
-                {role == 'editor' ? <EditorForm {...data} /> : <UserForm data={data} status={status} />}
-            </aside>
+                {role == 'editor' ? <EditorForm /> : <UserForm />}
         </div>
     </>)
 };

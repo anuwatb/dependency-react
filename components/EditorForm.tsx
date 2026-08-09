@@ -3,10 +3,12 @@
 import { useState } from "react";
 import Image from "next/image";
 import { Data } from "@/app/page";
-import { createSankey, openExistingDiagram, toJSON } from "@/lib/actions/diagram.actions";
+import Sankey from "./Sankey";
+import { openExistingDiagram, toJSON } from "@/lib/actions/diagram.actions";
 import { modifyCollection } from "@/lib/actions/quest.actions";
 
-const EditorForm = (data: Data) => {
+const EditorForm = () => {
+    const [data, setData] = useState<Data>({ nodes: [], links: [] });
     const [name, setName] = useState('');
     const [nameNew, setNameNew] = useState('');
     const [deps, setDeps] = useState('');
@@ -21,52 +23,78 @@ const EditorForm = (data: Data) => {
     
     const handleOpen = async () => {
         if (window.confirm('The unsaved diagram (if any) will be deleted.')) {
-            const result = await openExistingDiagram(data);
-            if (result?.success) createSankey('editor', data, { setForm, setName, setNameNew, setDeps });
+            const result = await openExistingDiagram();
+            if (result?.success) {
+                if (result.data!.links.length == 0) {
+                    const dataNew: Data = JSON.parse(JSON.stringify(result.data!));
+                    dataNew.nodes.forEach(node => {
+                        node.deps.forEach(dep => {
+                            dataNew.links.push({
+                                source: dep,
+                                target: node.name,
+                                value: 1
+                            });
+                        });
+                    });
+                    setData(dataNew);
+                }
+                else setData(result.data!);
+            }
             else alert(result?.error);
         }
     };
     
     const handleAdd = () => {
-        const depsArray = deps.split(',');
+        const dataNew: Data = JSON.parse(JSON.stringify(data));
+        const depsArray = deps.split(',').map(dep => dep.trim());
+        if (depsArray.includes(name.trim())) {
+            alert('A node cannot depend on itself.');
+            return;
+        }
         depsArray.forEach((dep, i) => {
-            const nodeIndex = data.nodes.findIndex(node => node.name == name);
-            const depIndex = data.nodes.findIndex(node => node.name == dep);
+            const nodeIndex = dataNew.nodes.findIndex(node => node.name == name);
+            const depIndex = dataNew.nodes.findIndex(node => node.name == dep);
 
             if (nodeIndex == -1 && depIndex == -1) {
-                data.nodes.push({ name: name, category: "Test", deps: [depsArray[i]] });
-                data.nodes.push({ name: depsArray[i], category: "Test", deps: [] });
-                data.links.push({ source: depsArray[i], target: name, value: 1 });
+                dataNew.nodes.push({ name: name, category: "Test", deps: [depsArray[i]] });
+                dataNew.nodes.push({ name: depsArray[i], category: "Test", deps: [] });
+                dataNew.links.push({ source: depsArray[i], target: name, value: 1 });
             }
             if (nodeIndex == -1 && depIndex != -1) {
-                data.nodes.push({ name: name, category: "Test", deps: [depsArray[i]] });
-                data.links.push({ source: depsArray[i], target: name, value: 1 });
+                dataNew.nodes.push({ name: name, category: "Test", deps: [depsArray[i]] });
+                dataNew.links.push({ source: depsArray[i], target: name, value: 1 });
             }
             if (nodeIndex != -1 && depIndex == -1) {
-                data.nodes.push({ name: depsArray[i], category: "Test", deps: [] });
-                data.nodes[nodeIndex].deps.push(depsArray[i]);
-                data.links.push({ source: depsArray[i], target: name, value: 1 });
+                dataNew.nodes.push({ name: depsArray[i], category: "Test", deps: [] });
+                dataNew.nodes[nodeIndex].deps.push(depsArray[i]);
+                dataNew.links.push({ source: depsArray[i], target: name, value: 1 });
             }
             if (nodeIndex != -1 && depIndex != -1) {
-                if (!data.nodes[nodeIndex].deps.includes(depsArray[i])) {
-                    data.nodes[nodeIndex].deps.push(depsArray[i]);
-                    data.links.push({ source: depsArray[i], target: name, value: 1 });
+                if (!dataNew.nodes[nodeIndex].deps.includes(depsArray[i])) {
+                    dataNew.nodes[nodeIndex].deps.push(depsArray[i]);
+                    dataNew.links.push({ source: depsArray[i], target: name, value: 1 });
                 }// else { alert('Already exist.'); break; }
             }
         });
         setName('');
         setDeps('');
-        createSankey('editor', data, { setForm, setName, setNameNew, setDeps });
+        setData(dataNew);
     };
 
     const handleEdit = (nameNew: string) => {
-        data.nodes.forEach(node => {
+        nameNew = nameNew.trim();
+        if (nameNew != name && data.nodes.some(node => node.name == nameNew)) {
+            alert('A node with this name already exists.');
+            return;
+        }
+        const dataNew: Data = JSON.parse(JSON.stringify(data));
+        dataNew.nodes.forEach(node => {
             if (node.name == name) node.name = nameNew;
             node.deps.forEach((dep, i) => {
                 if (dep == name) node.deps[i] = nameNew;
             });
         });
-        data.links.forEach(link => {
+        dataNew.links.forEach(link => {
             if (link.target == name) link.target = nameNew;
             if (link.source == name) link.source = nameNew;
         });
@@ -74,7 +102,7 @@ const EditorForm = (data: Data) => {
         setNameNew('');
         setDeps('');
         setForm('add');
-        createSankey('editor', data, { setForm, setName, setNameNew, setDeps });
+        setData(dataNew);
     };
 
     const handleCancel = () => {
@@ -85,30 +113,24 @@ const EditorForm = (data: Data) => {
     };
     
     const handleDelete = () => {
-        const nodeIndex = data.nodes.findIndex(node => node.name == name);
+        const dataNew: Data = JSON.parse(JSON.stringify(data));
+        const nodeIndex = dataNew.nodes.findIndex(node => node.name == name);
         if (form == 'edit') {
-            data.nodes.splice(nodeIndex, 1);
-            data.nodes.forEach((node) => {
+            dataNew.nodes.splice(nodeIndex, 1);
+            dataNew.nodes.forEach((node) => {
                 node.deps = node.deps.filter(dep => dep != name);
-                const linkIndex = data.links.findIndex(link => link.source == name && link.target == node.name);
-                if (linkIndex != -1) data.links.splice(linkIndex, 1);
             });
-            const depsArray = deps.split(',');
-            depsArray.forEach(dep => {
-                const linkIndex = data.links.findIndex(link => link.source == dep && link.target == name);
-                if (linkIndex != -1) data.links.splice(linkIndex, 1);
-            });
+            dataNew.links = dataNew.links.filter(link => link.source != name && link.target != name);
         }
         if (form == 'delete') {
-            data.nodes[nodeIndex].deps = data.nodes[nodeIndex].deps.filter(dep => dep != deps);
-            const linkIndex = data.links.findIndex(link => link.source == deps && link.target == name);
-            data.links.splice(linkIndex, 1);
+            dataNew.nodes[nodeIndex].deps = dataNew.nodes[nodeIndex].deps.filter(dep => dep != deps);
+            dataNew.links = dataNew.links.filter(link => !(link.source == deps && link.target == name));
         }
         setName('');
         setNameNew('');
         setDeps('');
         setForm('add');
-        createSankey('editor', data, { setForm, setName, setNameNew, setDeps });
+        setData(dataNew);
     };
     
     const handleUpload = async () => {
@@ -129,93 +151,98 @@ const EditorForm = (data: Data) => {
     const [currentAction, setCurrentAction] = useState(actions[0]);
 
     return (<>
-        <div className="px-gutter">
-            <div 
-                className="p-3 rounded-xl border border-outline-variant"
-                onClick={handleOpen}
-            >
-                <span className="font-mono-label text-mono-label text-on-surface">Genshin Impact Quests</span>
+        <main id="diagram" className="flex-1 bg-surface">
+            <Sankey role='editor' data={data} sankeyProps={{ setForm, setName, setNameNew, setDeps }} />
+        </main>
+        <aside>
+            <div className="px-gutter">
+                <button 
+                    className="w-full text-left p-3 rounded-xl border border-outline-variant"
+                    onClick={handleOpen}
+                >
+                    <span className="font-mono-label text-mono-label text-on-surface">Genshin Impact Quests</span>
+                </button>
             </div>
-        </div>
-        <div id="node-input" className="p-gutter space-y-4">
-            <input
-                disabled={form == 'delete'}
-                type="text"
-                value={form == 'edit' ? nameNew : name}
-                onChange={e => form == 'edit' ? setNameNew(e.target.value) : setName(e.target.value)}
-                placeholder="Name"
-            />
-            <input
-                disabled={form == 'edit' || form == 'delete'}
-                type="text"
-                value={deps}
-                onChange={e => setDeps(e.target.value)}
-                placeholder="Depend on"
-            />
-        </div>
-        <div className="p-gutter border-t border-outline-variant grid grid-cols-2 gap-3">
-            {form == 'add' && (
-                <button
-                    disabled={(name == '' || deps == '') ? true : false}
-                    className="col-span-2 btn-normal disabled:opacity-65 disabled:cursor-not-allowed"
-                    onClick={handleAdd}
-                >
-                    ADD
-                </button>
-            )}
-            {form == 'edit' && (
-                <button
-                    className="btn-normal"
-                    onClick={() => handleEdit(nameNew)}
-                >
-                    EDIT NAME
-                </button>
-            )}
-            {(form == 'edit' || form == 'delete') && (<>
-                <button
-                    id="delete-btn"
-                    disabled={form == 'edit' ? nameNew != name : false}
-                    className={form == 'edit' ? "disabled:opacity-65 disabled:cursor-not-allowed" : "col-span-2"}
-                    onClick={handleDelete}
-                >
-                    DELETE
-                </button>
-                <button
-                    className="col-span-2 btn-normal"
-                    onClick={handleCancel}
-                >
-                    CANCEL
-                </button>
-            </>)}
-        </div>
-        <div className="px-6 py-4">
-            <div className="relative inline-flex">
-                <button
-                    id="download-btn"
-                    className="rounded-l-lg"
-                    onClick={currentAction.execute}
-                >
-                    {currentAction.label}
-                </button>
-                <button
-                    className="rounded-r-lg bg-primary px-3 hover:opacity-90"
-                    onClick={() => setDropdown(!dropdown)}
-                >
-                    <Image src="/keyboard_arrow_down.svg" alt="" width={22} height={22} />
-                </button>
-                {dropdown && (
-                    <div className="absolute top-full rounded-lg bg-primary">
-                        {actions.map(action => (<button
-                            key={action.id}
-                            className="block text-left p-2 font-mono-label text-mono-label hover:opacity-90"
-                            onClick={() => { setCurrentAction(action); setDropdown(false); }}
-                        >
-                            {action.label}
-                        </button>))}
-                    </div>
+            <div id="node-input" className="p-gutter space-y-4">
+                <input
+                    disabled={form == 'delete'}
+                    type="text"
+                    value={form == 'edit' ? nameNew : name}
+                    onChange={e => form == 'edit' ? setNameNew(e.target.value) : setName(e.target.value.trim())}
+                    placeholder="Name"
+                />
+                <input
+                    disabled={form == 'edit' || form == 'delete'}
+                    type="text"
+                    value={deps}
+                    onChange={e => setDeps(e.target.value)}
+                    placeholder="Depend on"
+                />
+            </div>
+            <div className="p-gutter border-t border-outline-variant grid grid-cols-2 gap-3">
+                {form == 'add' && (
+                    <button
+                        disabled={(name == '' || deps == '') ? true : false}
+                        className="col-span-2 btn-normal disabled:opacity-65 disabled:cursor-not-allowed"
+                        onClick={handleAdd}
+                    >
+                        ADD
+                    </button>
                 )}
+                {form == 'edit' && (
+                    <button
+                        className="btn-normal"
+                        onClick={() => handleEdit(nameNew)}
+                    >
+                        EDIT NAME
+                    </button>
+                )}
+                {(form == 'edit' || form == 'delete') && (<>
+                    <button
+                        id="delete-btn"
+                        disabled={form == 'edit' ? nameNew != name : false}
+                        className={form == 'edit' ? "disabled:opacity-65 disabled:cursor-not-allowed" : "col-span-2"}
+                        onClick={handleDelete}
+                    >
+                        DELETE
+                    </button>
+                    <button
+                        className="col-span-2 btn-normal"
+                        onClick={handleCancel}
+                    >
+                        CANCEL
+                    </button>
+                </>)}
             </div>
-        </div>
+            <div className="px-6 py-4">
+                <div className="relative inline-flex">
+                    <button
+                        id="download-btn"
+                        className="rounded-l-lg"
+                        onClick={currentAction.execute}
+                    >
+                        {currentAction.label}
+                    </button>
+                    <button
+                        className="rounded-r-lg bg-primary px-3 hover:opacity-90"
+                        onClick={() => setDropdown(!dropdown)}
+                    >
+                        <Image src="/keyboard_arrow_down.svg" alt="" width={22} height={22} />
+                    </button>
+                    {dropdown && (
+                        <div className="absolute top-full rounded-lg bg-primary">
+                            {actions.map(action => (<button
+                                key={action.id}
+                                className="block text-left p-2 font-mono-label text-mono-label hover:opacity-90"
+                                onClick={() => { setCurrentAction(action); setDropdown(false); }}
+                            >
+                                {action.label}
+                            </button>))}
+                        </div>
+                    )}
+                </div>
+            </div>
+        </aside>
     </>);
 };
 

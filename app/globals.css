@@ -51,6 +51,10 @@ body {
 }
 
 @layer components {
+  aside {
+    @apply bg-surface-container border-l border-outline-variant w-80;
+  }
+  
   .btn-normal {
     @apply border border-outline-variant text-on-surface-variant font-mono-label py-2 rounded hover:bg-surface-variant;
   }

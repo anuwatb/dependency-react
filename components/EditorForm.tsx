@@ -168,7 +168,7 @@ const EditorForm = () => {
                     disabled={form == 'delete'}
                     type="text"
                     value={form == 'edit' ? nameNew : name}
-                    onChange={e => form == 'edit' ? setNameNew(e.target.value) : setName(e.target.value)}
+                    onChange={e => form == 'edit' ? setNameNew(e.target.value) : setName(e.target.value.trim())}
                     placeholder="Name"
                 />
                 <input

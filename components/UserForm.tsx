@@ -8,11 +8,11 @@ import { openExistingDiagram, toJSON } from "@/lib/actions/diagram.actions";
 const UserForm = () => {
     const [data, setData] = useState<Data>({ nodes: [], links: [] });
     useEffect(() => {
-        openExistingDiagram(data)
+        openExistingDiagram()
             .then(result => {
                 if (result.success) {
-                    const dataNew: Data = JSON.parse(JSON.stringify(result.data!));
-                    if (dataNew.nodes[0] && !Object.hasOwn(dataNew.nodes[0], 'status')) dataNew.nodes.forEach(node => node.status = false);
+                    const dataNew: Data = JSON.parse(JSON.stringify(result.data));
+                    dataNew.nodes.forEach(node => node.status = node.status ?? false);
     
                     if (result.data!.links.length == 0) {
                         dataNew.nodes.forEach(node => {
@@ -36,6 +36,8 @@ const UserForm = () => {
         let status: Status[];
         try {
             if (progressFile) status = JSON.parse(await progressFile[0].text());
+            else return;
+            if (!Array.isArray(status)) throw new Error('Invalid file.');
         } catch (e) {
             alert('Invalid file.');
             return;
@@ -43,7 +45,7 @@ const UserForm = () => {
         const dataNew: Data = JSON.parse(JSON.stringify(data));
         dataNew.nodes.forEach(node => {
             const statusIndex = status.findIndex(item => item.node == node.name);
-            node.status = status[statusIndex].status;
+            if (statusIndex != -1) node.status = status[statusIndex].status;
         });
         setData(dataNew);
     };
@@ -66,7 +68,7 @@ const UserForm = () => {
             <Sankey role='user' data={data} sankeyProps={{ editStatus }} />
         </main>
         <aside>
-            <div className="px-(--gutter) space-y-1.5">
+            <div className="px-gutter space-y-1.5">
                 <label htmlFor="file-input" className="font-mono-label text-[10px] text-on-surface-variant">
                     OPEN PROGRESS DATA FILE
                 </label>

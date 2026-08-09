@@ -32,11 +32,11 @@ const Sankey = ({ role, data, sankeyProps }: { role: string, data: Data, sankeyP
         const width = parseInt(d3.select("#diagram").style("width"));
         const height = parseInt(d3.select("#diagram").style("height"));
         
-        if (data.links.length == 0) return;//data.nodes.length == 0 || 
         const svg = d3.select(svgRef.current)
                 .attr("width", width)
                 .attr("height", height);
         svg.selectAll("*").remove();
+        if (data.links.length == 0) return;//data.nodes.length == 0 || 
         const diagram = sankey<MyNode, SankeyLink<object, object>>()
             .nodeId(d => d.name)
             .extent([[0, 0], [width, height]]);
@@ -79,9 +79,9 @@ const Sankey = ({ role, data, sankeyProps }: { role: string, data: Data, sankeyP
                 .attr("fill", "#dae2fd");
         svg.append("g")
             .selectAll("image")
-            .data(nodes)
+            .data(nodes.filter(d => d.status == true))
             .join("image")
-                .attr("href", d => d.status == true ? "/check_circle.svg" : "")
+                .attr("href", "/check_circle.svg")
                 .attr("x", d => d.x0!)
                 .attr("y", d => ((d.y0! + d.y1!) / 2) - 12);
         console.log(data);

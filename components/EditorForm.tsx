@@ -23,7 +23,7 @@ const EditorForm = () => {
     
     const handleOpen = async () => {
         if (window.confirm('The unsaved diagram (if any) will be deleted.')) {
-            const result = await openExistingDiagram(data);
+            const result = await openExistingDiagram();
             if (result?.success) {
                 if (result.data!.links.length == 0) {
                     const dataNew: Data = JSON.parse(JSON.stringify(result.data!));
@@ -46,7 +46,11 @@ const EditorForm = () => {
     
     const handleAdd = () => {
         const dataNew: Data = JSON.parse(JSON.stringify(data));
-        const depsArray = deps.split(',');
+        const depsArray = deps.split(',').map(dep => dep.trim());
+        if (depsArray.includes(name.trim())) {
+            alert('A node cannot depend on itself.');
+            return;
+        }
         depsArray.forEach((dep, i) => {
             const nodeIndex = dataNew.nodes.findIndex(node => node.name == name);
             const depIndex = dataNew.nodes.findIndex(node => node.name == dep);
@@ -78,6 +82,11 @@ const EditorForm = () => {
     };
 
     const handleEdit = (nameNew: string) => {
+        nameNew = nameNew.trim();
+        if (nameNew != name && data.nodes.some(node => node.name == nameNew)) {
+            alert('A node with this name already exists.');
+            return;
+        }
         const dataNew: Data = JSON.parse(JSON.stringify(data));
         dataNew.nodes.forEach(node => {
             if (node.name == name) node.name = nameNew;
@@ -110,19 +119,12 @@ const EditorForm = () => {
             dataNew.nodes.splice(nodeIndex, 1);
             dataNew.nodes.forEach((node) => {
                 node.deps = node.deps.filter(dep => dep != name);
-                const linkIndex = dataNew.links.findIndex(link => link.source == name && link.target == node.name);
-                if (linkIndex != -1) dataNew.links.splice(linkIndex, 1);
             });
-            const depsArray = deps.split(',');
-            depsArray.forEach(dep => {
-                const linkIndex = dataNew.links.findIndex(link => link.source == dep && link.target == name);
-                if (linkIndex != -1) dataNew.links.splice(linkIndex, 1);
-            });
+            dataNew.links = dataNew.links.filter(link => link.source != name && link.target != name);
         }
         if (form == 'delete') {
             dataNew.nodes[nodeIndex].deps = dataNew.nodes[nodeIndex].deps.filter(dep => dep != deps);
-            const linkIndex = dataNew.links.findIndex(link => link.source == deps && link.target == name);
-            dataNew.links.splice(linkIndex, 1);
+            dataNew.links = dataNew.links.filter(link => !(link.source == deps && link.target == name));
         }
         setName('');
         setNameNew('');
@@ -154,12 +156,12 @@ const EditorForm = () => {
         </main>
         <aside>
             <div className="px-gutter">
-                <div 
-                    className="p-3 rounded-xl border border-outline-variant"
+                <button 
+                    className="w-full text-left p-3 rounded-xl border border-outline-variant"
                     onClick={handleOpen}
                 >
                     <span className="font-mono-label text-mono-label text-on-surface">Genshin Impact Quests</span>
-                </div>
+                </button>
             </div>
             <div id="node-input" className="p-gutter space-y-4">
                 <input

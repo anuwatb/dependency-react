@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+
+# env files
+.env*
+
+# Next.js build output
+.next
+
+# Version control systems
+.git
+.gitignore
+
+# Docker
+Dockerfile
+compose.yaml
+.dockerignore
+
+# Documentation
+*.md

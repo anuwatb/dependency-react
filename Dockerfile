@@ -9,7 +9,7 @@ RUN npm ci
 # Copy source code
 COPY . .
 
-RUN --mount=type=secret,id=jwt,target=.env \
+RUN --mount=type=secret,id=jwt,required=true,target=/dependency-app/.env \
     npm run build
 
 # Production environment

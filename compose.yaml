@@ -2,9 +2,13 @@ services:
   app:
     build:
       context: .
+      secrets: [jwt]
       dockerfile: Dockerfile
       target: production
     ports:
       - "3000:3000"
     env_file: .env
     restart: unless-stopped
+secrets:
+  jwt:
+    file: .env

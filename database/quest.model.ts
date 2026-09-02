@@ -4,6 +4,8 @@ export interface IQuest extends Document {
     name: string;
     category: string;
     deps: string[];
+    fullname: string;
+    details: string;
 }
 
 const QuestSchema = new Schema<IQuest>(
@@ -19,6 +21,14 @@ const QuestSchema = new Schema<IQuest>(
         deps: {
             type: [String],
             required: true,
+        },
+        fullname: {
+            type: String,
+            default: "",
+        },
+        details: {
+            type: String,
+            default: "",
         }
     }
 )

@@ -11,7 +11,9 @@ export const openExistingDiagram = async () => {
             nodes: quests.map(quest => ({
                 name: quest.name,
                 category: quest.category,
-                deps: quest.deps
+                deps: quest.deps,
+                fullname: quest.fullname,
+                details: quest.details,
             })),
             links: [],
         };

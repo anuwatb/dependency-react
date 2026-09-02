@@ -77,7 +77,11 @@ body {
 
   #node-input {
     input {
-      @apply w-full bg-surface px-3 py-2 text-sm text-on-surface font-body-base disabled:cursor-not-allowed;
+      @apply w-full bg-surface border border-outline-variant rounded px-3 py-2 text-sm text-on-surface font-body-base disabled:cursor-not-allowed;
+    }
+
+    label {
+      @apply font-mono-label text-[10px] text-on-surface-variant;
     }
   }
 }

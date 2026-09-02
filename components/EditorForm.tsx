@@ -11,7 +11,10 @@ const EditorForm = () => {
     const [data, setData] = useState<Data>({ nodes: [], links: [] });
     const [name, setName] = useState('');
     const [nameNew, setNameNew] = useState('');
+    const [nameFull, setNameFull] = useState('');
+    const [category, setCategory] = useState('Default');
     const [deps, setDeps] = useState('');
+    const [details, setDetails] = useState('');
     const [form, setForm] = useState('add');
     // const [addDisabled, setAddDisabled] = useState(true);
     const [dropdown, setDropdown] = useState(false);
@@ -47,7 +50,7 @@ const EditorForm = () => {
     const handleAdd = () => {
         const dataNew: Data = JSON.parse(JSON.stringify(data));
         const depsArray = deps.split(',').map(dep => dep.trim());
-        if (depsArray.includes(name.trim())) {
+        if (depsArray.includes(name)) {
             alert('A node cannot depend on itself.');
             return;
         }
@@ -56,16 +59,16 @@ const EditorForm = () => {
             const depIndex = dataNew.nodes.findIndex(node => node.name == dep);
 
             if (nodeIndex == -1 && depIndex == -1) {
-                dataNew.nodes.push({ name: name, category: "Test", deps: [depsArray[i]] });
-                dataNew.nodes.push({ name: depsArray[i], category: "Test", deps: [] });
+                dataNew.nodes.push({ name: name, category: category, deps: [depsArray[i]], fullname: nameFull, details: details });
+                dataNew.nodes.push({ name: depsArray[i], category: category, deps: [], fullname: "", details: "" });
                 dataNew.links.push({ source: depsArray[i], target: name, value: 1 });
             }
             if (nodeIndex == -1 && depIndex != -1) {
-                dataNew.nodes.push({ name: name, category: "Test", deps: [depsArray[i]] });
+                dataNew.nodes.push({ name: name, category: category, deps: [depsArray[i]], fullname: nameFull, details: details });
                 dataNew.links.push({ source: depsArray[i], target: name, value: 1 });
             }
             if (nodeIndex != -1 && depIndex == -1) {
-                dataNew.nodes.push({ name: depsArray[i], category: "Test", deps: [] });
+                dataNew.nodes.push({ name: depsArray[i], category: category, deps: [], fullname: "", details: "" });
                 dataNew.nodes[nodeIndex].deps.push(depsArray[i]);
                 dataNew.links.push({ source: depsArray[i], target: name, value: 1 });
             }
@@ -77,19 +80,26 @@ const EditorForm = () => {
             }
         });
         setName('');
+        setNameFull('');
+        setCategory('Default');
         setDeps('');
+        setDetails('');
         setData(dataNew);
     };
 
     const handleEdit = (nameNew: string) => {
-        nameNew = nameNew.trim();
         if (nameNew != name && data.nodes.some(node => node.name == nameNew)) {
             alert('A node with this name already exists.');
             return;
         }
         const dataNew: Data = JSON.parse(JSON.stringify(data));
         dataNew.nodes.forEach(node => {
-            if (node.name == name) node.name = nameNew;
+            if (node.name == name) {
+                node.name = nameNew;
+                node.category = category;
+                node.fullname = nameFull;
+                node.details = details;
+            }
             node.deps.forEach((dep, i) => {
                 if (dep == name) node.deps[i] = nameNew;
             });
@@ -100,7 +110,10 @@ const EditorForm = () => {
         });
         setName('');
         setNameNew('');
+        setNameFull('');
+        setCategory('Default');
         setDeps('');
+        setDetails('');
         setForm('add');
         setData(dataNew);
     };
@@ -108,7 +121,10 @@ const EditorForm = () => {
     const handleCancel = () => {
         setName('');
         setNameNew('');
+        setNameFull('');
+        setCategory('Default');
         setDeps('');
+        setDetails('');
         setForm('add');
     };
     
@@ -128,12 +144,15 @@ const EditorForm = () => {
         }
         setName('');
         setNameNew('');
+        setNameFull('');
+        setCategory('Default');
         setDeps('');
+        setDetails('');
         setForm('add');
         setData(dataNew);
     };
     
-    const handleUpload = async () => {
+    const handleUpload = async (data: Data) => {
         const result = await modifyCollection(data.nodes);
         if (result.success) alert('Successfully uploaded');
         else alert(result.error);
@@ -152,10 +171,10 @@ const EditorForm = () => {
 
     return (<>
         <main id="diagram" className="flex-1 bg-surface">
-            <Sankey role='editor' data={data} sankeyProps={{ setForm, setName, setNameNew, setDeps }} />
+            <Sankey role='editor' data={data} sankeyProps={{ setForm, setName, setNameNew, setNameFull, setCategory, setDeps, setDetails }} />
         </main>
         <aside>
-            <div className="px-gutter">
+            <div className="border-b border-outline-variant px-gutter">
                 <button 
                     className="w-full text-left p-3 rounded-xl border border-outline-variant"
                     onClick={handleOpen}
@@ -163,20 +182,63 @@ const EditorForm = () => {
                     <span className="font-mono-label text-mono-label text-on-surface">Genshin Impact Quests</span>
                 </button>
             </div>
+            <div className="p-4 border-b border-outline-variant">
+                <h2 className="font-mono-label text-on-surface text-[12px] tracking-wider">PROPERTIES</h2>
+            </div>
             <div id="node-input" className="p-gutter space-y-4">
+                <label htmlFor="node-name-input">
+                    NAME
+                </label>
                 <input
+                    id="node-name-input"
                     disabled={form == 'delete'}
                     type="text"
                     value={form == 'edit' ? nameNew : name}
-                    onChange={e => form == 'edit' ? setNameNew(e.target.value) : setName(e.target.value.trim())}
-                    placeholder="Name"
+                    onChange={e => form == 'edit' ? setNameNew(e.target.value.trim()) : setName(e.target.value.trim())}
+                    placeholder="Short name for reference"
                 />
+                <label htmlFor="node-fullname-input">
+                    FULL NAME
+                </label>
                 <input
+                    id="node-fullname-input"
+                    disabled={form == 'delete'}
+                    type="text"
+                    value={nameFull}
+                    onChange={e => setNameFull(e.target.value)}
+                    placeholder="Full name for displaying"
+                />
+                <label htmlFor="deps-input">
+                    DEPENDENCIES
+                </label>
+                <input
+                    id="deps-input"
                     disabled={form == 'edit' || form == 'delete'}
                     type="text"
                     value={deps}
                     onChange={e => setDeps(e.target.value)}
-                    placeholder="Depend on"
+                    placeholder="Depends on"
+                />
+                <label htmlFor="node-category-input">
+                    CATEGORY
+                </label>
+                <input
+                    id="node-category-input"
+                    disabled={form == 'delete'}
+                    type="text"
+                    value={category}
+                    onChange={e => setCategory(e.target.value.trim() == '' ? 'Default' : e.target.value.trim())}
+                />
+                <label htmlFor="node-details-input">
+                    DETAILS
+                </label>
+                <input
+                    id="node-details-input"
+                    disabled={form == 'delete'}
+                    type="text"
+                    value={details}
+                    onChange={e => setDetails(e.target.value)}
+                    placeholder="Details"
                 />
             </div>
             <div className="p-gutter border-t border-outline-variant grid grid-cols-2 gap-3">
@@ -194,7 +256,7 @@ const EditorForm = () => {
                         className="btn-normal"
                         onClick={() => handleEdit(nameNew)}
                     >
-                        EDIT NAME
+                        EDIT
                     </button>
                 )}
                 {(form == 'edit' || form == 'delete') && (<>
@@ -219,7 +281,7 @@ const EditorForm = () => {
                     <button
                         id="download-btn"
                         className="rounded-l-lg"
-                        onClick={currentAction.execute}
+                        onClick={() => currentAction.execute(data)}
                     >
                         {currentAction.label}
                     </button>

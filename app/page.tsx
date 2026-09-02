@@ -8,6 +8,8 @@ export interface MyNode extends SankeyNode<object, object> {
     name: string;
     category: string;
     deps: string[];
+    fullname: string;
+    details: string;
     status?: boolean;
 }
 

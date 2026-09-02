@@ -7,19 +7,25 @@ interface SankeyProps {
     setForm?: Dispatch<SetStateAction<string>>;
     setName?: Dispatch<SetStateAction<string>>;
     setNameNew?: Dispatch<SetStateAction<string>>;
+    setNameFull?: Dispatch<SetStateAction<string>>;
+    setCategory?: Dispatch<SetStateAction<string>>;
     setDeps?: Dispatch<SetStateAction<string>>;
+    setDetails?: Dispatch<SetStateAction<string>>;
     editStatus?: (name: string) => void;
 }
 
 const Sankey = ({ role, data, sankeyProps }: { role: string, data: Data, sankeyProps: SankeyProps }) => {
     const svgRef = useRef(null);
-    const { setForm, setName, setNameNew, setDeps, editStatus } = sankeyProps;
+    const { setForm, setName, setNameNew, setNameFull, setCategory, setDeps, setDetails, editStatus } = sankeyProps;
     
-    const toEditNode = (name: string, deps: string[]) => {
+    const toEditNode = (name: string, category: string, deps: string[], fullname: string, details: string) => {
         setForm!('edit');
         setName!(name);
         setNameNew!(name);
+        setNameFull!(fullname);
+        setCategory!(category);
         setDeps!(deps.join());
+        setDetails!(details);
     };
     
     const toDelete = (source: string, target: string) => {
@@ -49,13 +55,14 @@ const Sankey = ({ role, data, sankeyProps }: { role: string, data: Data, sankeyP
             .selectAll("rect")
             .data(nodes)
             .join("rect")
+                .attr("data-testid", d => `node-${d.name}`)
                 .attr("stroke", "#000")
                 .attr("x", d => d.x0!)
                 .attr("y", d => d.y0!)
                 .attr("height", d => d.y1! - d.y0!)
                 .attr("width", d => d.x1! - d.x0!)
                 .attr("fill", d => color(d.category))
-                .on("click", (e, d) => role == 'editor' ? toEditNode(d.name, d.deps) : editStatus!(d.name));
+                .on("click", (e, d) => role == 'editor' ? toEditNode(d.name, d.category, d.deps, d.fullname, d.details) : editStatus!(d.name));
         const link = svg.append("g")
             .attr("fill", "none")
             .attr("stroke-opacity", 0.5)
@@ -63,6 +70,7 @@ const Sankey = ({ role, data, sankeyProps }: { role: string, data: Data, sankeyP
             .data(links)
             .join("g")
                 .attr("class", "link")
+                .attr("data-testid", d => `link-${(d as { source: { name: string } }).source.name}-${(d as { target: { name: string } }).target.name}`)
                 .on("click", (e, d) => (role == 'editor') && toDelete((d as { source: { name: string } }).source.name, (d as { target: { name: string } }).target.name));
         link.append("path")
             .attr("d", sankeyLinkHorizontal())
@@ -72,7 +80,8 @@ const Sankey = ({ role, data, sankeyProps }: { role: string, data: Data, sankeyP
             .selectAll("text")
             .data(nodes)
             .join("text")
-                .text(d => d.name)
+                .text(d => d.fullname)
+                .attr("data-testid", d => `node-text-${d.name}`)
                 .attr("x", d => d.x0! < width / 2 ? d.x1! + 6 : d.x0! - 6)
                 .attr("y", d => (d.y0! + d.y1!) / 2)
                 .attr("text-anchor", d => d.x0! < width / 2 ? "start" : "end")
@@ -87,7 +96,7 @@ const Sankey = ({ role, data, sankeyProps }: { role: string, data: Data, sankeyP
         console.log(data);
     }, [data]);
     return (
-        <svg ref={svgRef} />
+        <svg ref={svgRef} data-testid="svg" data-testdata={JSON.stringify(data)} />
     );
 };
     

@@ -80,7 +80,7 @@ const Sankey = ({ role, data, sankeyProps }: { role: string, data: Data, sankeyP
             .selectAll("text")
             .data(nodes)
             .join("text")
-                .text(d => d.fullname)
+                .text(d => d.fullname || d.name)
                 .attr("data-testid", d => `node-text-${d.name}`)
                 .attr("x", d => d.x0! < width / 2 ? d.x1! + 6 : d.x0! - 6)
                 .attr("y", d => (d.y0! + d.y1!) / 2)

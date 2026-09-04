@@ -16,6 +16,12 @@ A tool for creating and editing dependency diagrams. Editors can create, edit, a
 
 - Neon: Postgres backends for apps and agents
 
+- Drizzle ORM
+
+- Zod
+
+- Docker
+
 - Google Stitch
 
 - CodeRabbit

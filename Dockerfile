@@ -1,4 +1,4 @@
-FROM node:22.23.2-bullseye AS base
+FROM node:24.20.0-bullseye AS base
 
 WORKDIR /dependency-app
 
@@ -13,7 +13,7 @@ RUN --mount=type=secret,id=jwt,required=true,target=/dependency-app/.env \
     npm run build
 
 # Production environment
-FROM node:22.23.2-bullseye AS production
+FROM node:24.20.0-bullseye AS production
 
 WORKDIR /dependency-app
 

@@ -10,9 +10,11 @@
   --color-foreground: var(--foreground);
   --color-primary: #adc6ff;
   --color-primary-container: #4b8eff;
+  --color-accent-primary-dim: rgba(0, 200, 212, 0.12);
   --color-surface: #0b1326;
   --color-surface-variant: #2d3449;
   --color-surface-container: #171f33;
+  --color-surface-container-low: #131b2e;
   --color-outline-variant: #414755;
   --radius-lg: 0.25rem;
   --spacing-gutter: 16px;
@@ -57,6 +59,10 @@ body {
   
   .btn-normal {
     @apply border border-outline-variant text-on-surface-variant font-mono-label py-2 rounded hover:bg-surface-variant;
+  }
+  
+  .dialog-content {
+    @apply fixed top-1/2 left-1/2 grid -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl bg-surface p-4 text-sm text-on-surface ring-1;
   }
   
   .signin-input {

@@ -1,3 +1,5 @@
+This work is in progress.
+
 A tool for creating and editing dependency diagrams. Editors can create, edit, and delete diagram nodes and links. Users can view and update node statuses.
 
 ## Tech Stack

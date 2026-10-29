@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Data, Status } from "@/app/page";
-import Sankey from "@/components/Sankey";
+import Sankey from "@/components/sankey";
 import { openExistingDiagram, toJSON } from "@/lib/actions/diagram.actions";
 
 const UserForm = () => {

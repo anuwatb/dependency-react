@@ -1,8 +1,7 @@
 import { SankeyNode, SankeyLink } from "d3-sankey";
-// To do: change component file names to follow the industry standard best practice, use kebab-case
-import AccountLink from "@/components/AccountLink";
-import EditorForm from "@/components/EditorForm";
-import UserForm from "@/components/UserForm";
+import AccountLink from "@/components/account-link";
+import EditorForm from "@/components/editor-form";
+import UserForm from "@/components/user-form";
 import { verifySession } from "@/middleware/auth.middleware";
 import { getProjectsForUser } from "@/lib/projects";
 

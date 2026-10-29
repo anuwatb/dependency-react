@@ -123,7 +123,10 @@ const Sankey = ({ role, data, sankeyProps }: { role: string, data: Data, sankeyP
             .scaleExtent([0.5, 8])
             .on("zoom", zoomed);
         
-        svg.call(zoom);
+        // Because of undefined baseVal errors in testing, so no zoom in testing if not required
+        if (process.env.NODE_ENV != 'test') {
+            svg.call(zoom);
+        }
         console.log(data);
     }, [data]);
     return (<>

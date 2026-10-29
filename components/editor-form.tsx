@@ -5,7 +5,7 @@ import Image from "next/image";
 import { Data } from "@/app/page";
 import ProjectDialogs from "./project-dialogs";
 import ProjectSidebar from "./project-sidebar";
-import Sankey from "./Sankey";
+import Sankey from "./sankey";
 import { ProjectRow, useProjectActions } from "@/hooks/use-project-actions";
 import { openExistingDiagram, toJSON } from "@/lib/actions/diagram.actions";
 import { modifyCollection } from "@/lib/actions/quest.actions";

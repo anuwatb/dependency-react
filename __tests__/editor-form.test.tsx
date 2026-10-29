@@ -1,7 +1,7 @@
 import "@testing-library/react/dont-cleanup-after-each";
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import EditorForm from "@/components/EditorForm";
+import EditorForm from "@/components/editor-form";
 
 describe('EditorForm Buttons', () => {
     afterAll(() => {
@@ -9,7 +9,7 @@ describe('EditorForm Buttons', () => {
     });
 
     test('add button should add nodes and links correctly', async () => {
-        render(<EditorForm />);
+        render(<EditorForm ownedProjects={[]} />);
         
         const nodeNameInput = screen.getByRole('textbox', { name: /^name$/i });
         const depsInput = screen.getByRole('textbox', { name: /^dependencies$/i });

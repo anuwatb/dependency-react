@@ -3,11 +3,15 @@
 import { useState } from "react";
 import Image from "next/image";
 import { Data } from "@/app/page";
+import ProjectDialogs from "./project-dialogs";
+import ProjectSidebar from "./project-sidebar";
 import Sankey from "./Sankey";
+import { ProjectRow, useProjectActions } from "@/hooks/use-project-actions";
 import { openExistingDiagram, toJSON } from "@/lib/actions/diagram.actions";
 import { modifyCollection } from "@/lib/actions/quest.actions";
 
-const EditorForm = () => {
+const EditorForm = ({ ownedProjects }: { ownedProjects: ProjectRow[] }) => {
+    const [currentProjectId, setCurrentProjectId] = useState('');
     const [data, setData] = useState<Data>({ nodes: [], links: [] });
     const [name, setName] = useState('');
     const [nameNew, setNameNew] = useState('');
@@ -18,15 +22,16 @@ const EditorForm = () => {
     const [form, setForm] = useState('add');
     // const [addDisabled, setAddDisabled] = useState(true);
     const [dropdown, setDropdown] = useState(false);
+    const projectActions = useProjectActions();
     
     // useEffect(() => {
     //     if (name == '' || deps == '') setAddDisabled(true);
     //     else setAddDisabled(false);
     // }, [name, deps]);
     
-    const handleOpen = async () => {
+    const handleOpen = async (projectId: string) => {
         if (window.confirm('The unsaved diagram (if any) will be deleted.')) {
-            const result = await openExistingDiagram();
+            const result = await openExistingDiagram(projectId);
             if (result?.success) {
                 if (result.data!.links.length == 0) {
                     const dataNew: Data = JSON.parse(JSON.stringify(result.data!));
@@ -40,8 +45,10 @@ const EditorForm = () => {
                         });
                     });
                     setData(dataNew);
+                    setCurrentProjectId(projectId);
                 }
                 else setData(result.data!);
+                setCurrentProjectId(projectId);
             }
             else alert(result?.error);
         }
@@ -60,7 +67,7 @@ const EditorForm = () => {
 
             if (nodeIndex == -1 && depIndex == -1) {
                 dataNew.nodes.push({ name: name, category: category, deps: [depsArray[i]], fullname: nameFull, details: details });
-                dataNew.nodes.push({ name: depsArray[i], category: category, deps: [], fullname: "", details: "" });
+                dataNew.nodes.push({ name: depsArray[i], category: "Default", deps: [], fullname: "", details: "" });
                 dataNew.links.push({ source: depsArray[i], target: name, value: 1 });
             }
             if (nodeIndex == -1 && depIndex != -1) {
@@ -68,7 +75,7 @@ const EditorForm = () => {
                 dataNew.links.push({ source: depsArray[i], target: name, value: 1 });
             }
             if (nodeIndex != -1 && depIndex == -1) {
-                dataNew.nodes.push({ name: depsArray[i], category: category, deps: [], fullname: "", details: "" });
+                dataNew.nodes.push({ name: depsArray[i], category: "Default", deps: [], fullname: "", details: "" });
                 dataNew.nodes[nodeIndex].deps.push(depsArray[i]);
                 dataNew.links.push({ source: depsArray[i], target: name, value: 1 });
             }
@@ -152,8 +159,12 @@ const EditorForm = () => {
         setData(dataNew);
     };
     
-    const handleUpload = async (data: Data) => {
-        const result = await modifyCollection(data.nodes);
+    const handleUpload = async (data: Data, currentProjectId: string) => {
+        if (!currentProjectId) {
+            alert('Please open an existing diagram or create and open a new one before upload');
+            return;
+        }
+        const result = await modifyCollection(data.nodes, currentProjectId);
         if (result.success) alert('Successfully uploaded');
         else alert(result.error);
     };
@@ -170,18 +181,19 @@ const EditorForm = () => {
     const [currentAction, setCurrentAction] = useState(actions[0]);
 
     return (<>
+        <ProjectDialogs {...projectActions} />
+        <ProjectSidebar 
+            ownedProjects={ownedProjects}
+            onNewDiagram={projectActions.openCreate}
+            onDelete={projectActions.openDelete} 
+            currentProjectId={currentProjectId} 
+            handleOpen={handleOpen} 
+        />
+
         <main id="diagram" className="flex-1 bg-surface">
             <Sankey role='editor' data={data} sankeyProps={{ setForm, setName, setNameNew, setNameFull, setCategory, setDeps, setDetails }} />
         </main>
         <aside>
-            <div className="border-b border-outline-variant px-gutter">
-                <button 
-                    className="w-full text-left p-3 rounded-xl border border-outline-variant"
-                    onClick={handleOpen}
-                >
-                    <span className="font-mono-label text-mono-label text-on-surface">Genshin Impact Quests</span>
-                </button>
-            </div>
             <div className="p-4 border-b border-outline-variant">
                 <h2 className="font-mono-label text-on-surface text-[12px] tracking-wider">PROPERTIES</h2>
             </div>
@@ -195,7 +207,7 @@ const EditorForm = () => {
                     type="text"
                     value={form == 'edit' ? nameNew : name}
                     onChange={e => form == 'edit' ? setNameNew(e.target.value.trim()) : setName(e.target.value.trim())}
-                    placeholder="Short name for reference"
+                    placeholder="Short name for displaying and reference"
                 />
                 <label htmlFor="node-fullname-input">
                     FULL NAME
@@ -206,7 +218,7 @@ const EditorForm = () => {
                     type="text"
                     value={nameFull}
                     onChange={e => setNameFull(e.target.value)}
-                    placeholder="Full name for displaying"
+                    placeholder="Full name"
                 />
                 <label htmlFor="deps-input">
                     DEPENDENCIES
@@ -281,7 +293,7 @@ const EditorForm = () => {
                     <button
                         id="download-btn"
                         className="rounded-l-lg"
-                        onClick={() => currentAction.execute(data)}
+                        onClick={() => currentAction.execute(data, currentProjectId)}
                     >
                         {currentAction.label}
                     </button>

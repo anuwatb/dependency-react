@@ -8,7 +8,7 @@ import { openExistingDiagram, toJSON } from "@/lib/actions/diagram.actions";
 const UserForm = () => {
     const [data, setData] = useState<Data>({ nodes: [], links: [] });
     useEffect(() => {
-        openExistingDiagram()
+        openExistingDiagram("1")
             .then(result => {
                 if (result.success) {
                     const dataNew: Data = JSON.parse(JSON.stringify(result.data));
@@ -64,7 +64,7 @@ const UserForm = () => {
     };
     
     return (<>
-        <main id="diagram" className="flex-1 bg-surface">
+        <main id="diagram" className="relative inline-block flex-1 bg-surface">
             <Sankey role='user' data={data} sankeyProps={{ editStatus }} />
         </main>
         <aside>

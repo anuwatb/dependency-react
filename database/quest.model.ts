@@ -1,6 +1,6 @@
 import { model, models, Document, Schema } from "mongoose";
 
-export interface IQuest extends Document {
+export interface INode extends Document {
     name: string;
     category: string;
     deps: string[];
@@ -8,7 +8,7 @@ export interface IQuest extends Document {
     details: string;
 }
 
-const QuestSchema = new Schema<IQuest>(
+export const NodeSchema = new Schema<INode>(
     {
         name: {
             type: String,
@@ -33,6 +33,6 @@ const QuestSchema = new Schema<IQuest>(
     }
 )
 
-const Quest = models.Quest || model<IQuest>('Quest', QuestSchema);
+const Node = models.Node || model<INode>('Node', NodeSchema);
 
-export default Quest;
+export default Node;

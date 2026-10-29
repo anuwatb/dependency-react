@@ -6,7 +6,7 @@ async function connectDB() {
     if (!MONGODB_URI) {
         throw new Error("The MONGODB_URI environment variable is not defined");
     }
-    return mongoose.connect(MONGODB_URI);
+    return mongoose.createConnection(`${MONGODB_URI}?appName=Cluster0`).asPromise();
 }
 
 export default connectDB;

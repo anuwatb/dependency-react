@@ -1,8 +1,10 @@
 import { SankeyNode, SankeyLink } from "d3-sankey";
+// To do: change component file names to follow the industry standard best practice, use kebab-case
 import AccountLink from "@/components/AccountLink";
 import EditorForm from "@/components/EditorForm";
 import UserForm from "@/components/UserForm";
 import { verifySession } from "@/middleware/auth.middleware";
+import { getProjectsForUser } from "@/lib/projects";
 
 export interface MyNode extends SankeyNode<object, object> {
     name: string;
@@ -26,6 +28,7 @@ export interface Status {
 const Page = async () => {
     const session = await verifySession();
     const role: string = session.role;
+    const owned = await getProjectsForUser("1");
     
     return (<>
         <header className="bg-surface border-b border-outline-variant fixed w-full flex items-center justify-between px-margin h-14">
@@ -35,7 +38,7 @@ const Page = async () => {
             </div>
         </header>
         <div className="flex flex-1 pt-14 h-full">
-                {role == 'editor' ? <EditorForm /> : <UserForm />}
+                {role == 'editor' ? <EditorForm ownedProjects={owned.map(p => ({ id: p.id, name: p.name }))} /> : <UserForm />}
         </div>
     </>)
 };

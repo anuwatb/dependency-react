@@ -2,18 +2,18 @@ import { MyNode, Data } from "@/app/page";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
-export const openExistingDiagram = async () => {
+export const openExistingDiagram = async (projectId: string) => {
     try {
-        const response = await fetch(`${BASE_URL}/api/quests`);
+        const response = await fetch(`${BASE_URL}/api/projects/${projectId}`);
         if (!response.ok) throw new Error('Failed to fetch quests');
-        const { quests }: { quests: MyNode[] } = await response.json();
+        const { nodes }: { nodes: MyNode[] } = await response.json();
         const dataNew: Data = {
-            nodes: quests.map(quest => ({
-                name: quest.name,
-                category: quest.category,
-                deps: quest.deps,
-                fullname: quest.fullname,
-                details: quest.details,
+            nodes: nodes.map(node => ({
+                name: node.name,
+                category: node.category,
+                deps: node.deps,
+                fullname: node.fullname,
+                details: node.details,
             })),
             links: [],
         };

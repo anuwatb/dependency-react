@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/config/database";
 import { projects } from "@/models/project.model";
 import connectDB from "@/lib/mongodb";
-import { NodeSchema } from "@/database/quest.model";
+import { NodeSchema } from "@/database/node.model";
 import { verifySession } from "@/middleware/auth.middleware";
 
 export async function GET(

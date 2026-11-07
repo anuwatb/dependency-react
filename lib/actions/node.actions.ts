@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/config/database";
 import { projects } from "@/models/project.model";
 import connectDB from "../mongodb";
-import { NodeSchema } from "@/database/quest.model";
+import { NodeSchema } from "@/database/node.model";
 
 export const modifyCollection = async (documents: object[], projectId: string) => {
     const [project] = await db.select().from(projects).where(eq(projects.id, projectId));

@@ -8,7 +8,7 @@ import ProjectSidebar from "./project-sidebar";
 import Sankey from "./sankey";
 import { ProjectRow, useProjectActions } from "@/hooks/use-project-actions";
 import { openExistingDiagram, toJSON } from "@/lib/actions/diagram.actions";
-import { modifyCollection } from "@/lib/actions/quest.actions";
+import { modifyCollection } from "@/lib/actions/node.actions";
 
 export default function EditorForm({ currentProjectId, ownedProjects }: { currentProjectId: string, ownedProjects: ProjectRow[] }) {
     const [data, setData] = useState<Data>({ nodes: [], links: [] });

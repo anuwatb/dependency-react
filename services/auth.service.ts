@@ -10,6 +10,7 @@ export const authenticateUser = async ({ email, password }: { email: string, pas
         const isPasswordValid = await bcrypt.compare(password, existingUser?.password ?? '$2b$10$zCfDGVJy6YHiJeVowZQFGuP5llhWLQJeb55rnPcbQyzxygfEePwQC');
         
         return (existingUser && isPasswordValid) ? {
+            id: existingUser.id,
             role: existingUser.role
         } : {
             message: 'Invalid email or password.'

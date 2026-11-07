@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { redirect } from "next/navigation";
+import { redirect, usePathname } from "next/navigation";
 
 export interface ProjectRow {
     id: string;
@@ -19,6 +19,8 @@ const shortSuffix = () => {
 };
 
 export const useProjectActions = () => {
+    const pathname = usePathname();
+    
     const [dialogType, setDialogType] = useState<DialogType>(null);
     const [activeProject, setActiveProject] = useState<ProjectRow | null>(null);
     const [name, setName] = useState("");
@@ -43,6 +45,7 @@ export const useProjectActions = () => {
     };
     
     const handleNameChange = (value: string) => {
+        // To do: Limit numbers of characters
         setName(value);
         const s = toSlug(value);
         setProjectId(s ? `${s}-${suffix}` : "");
@@ -60,14 +63,14 @@ export const useProjectActions = () => {
                 if (res.ok) {
                     setDialogType(null);
                     setName("");
-                    redirect('/');
+                    redirect('');
                 }
             } else if (dialogType == "delete" && activeProject) {
                 await fetch(`/api/projects/${activeProject.id}`, { method: "DELETE" });
                 setDialogType(null);
                 setActiveProject(null);
-                // Problem: The deleted diagram is still on the screen
-                redirect('/');
+                if (pathname == `/editor/${activeProject.id}`) redirect('/editor');
+                else redirect('');
             }
         } finally {
 

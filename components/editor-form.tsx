@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Data } from "@/app/page";
 import ProjectDialogs from "./project-dialogs";
@@ -10,8 +10,7 @@ import { ProjectRow, useProjectActions } from "@/hooks/use-project-actions";
 import { openExistingDiagram, toJSON } from "@/lib/actions/diagram.actions";
 import { modifyCollection } from "@/lib/actions/quest.actions";
 
-const EditorForm = ({ ownedProjects }: { ownedProjects: ProjectRow[] }) => {
-    const [currentProjectId, setCurrentProjectId] = useState('');
+export default function EditorForm({ currentProjectId, ownedProjects }: { currentProjectId: string, ownedProjects: ProjectRow[] }) {
     const [data, setData] = useState<Data>({ nodes: [], links: [] });
     const [name, setName] = useState('');
     const [nameNew, setNameNew] = useState('');
@@ -29,9 +28,8 @@ const EditorForm = ({ ownedProjects }: { ownedProjects: ProjectRow[] }) => {
     //     else setAddDisabled(false);
     // }, [name, deps]);
     
-    const handleOpen = async (projectId: string) => {
-        if (window.confirm('The unsaved diagram (if any) will be deleted.')) {
-            const result = await openExistingDiagram(projectId);
+    useEffect(() => {
+        openExistingDiagram(currentProjectId).then(result => {
             if (result?.success) {
                 if (result.data!.links.length == 0) {
                     const dataNew: Data = JSON.parse(JSON.stringify(result.data!));
@@ -45,15 +43,14 @@ const EditorForm = ({ ownedProjects }: { ownedProjects: ProjectRow[] }) => {
                         });
                     });
                     setData(dataNew);
-                    setCurrentProjectId(projectId);
                 }
                 else setData(result.data!);
-                setCurrentProjectId(projectId);
             }
             else alert(result?.error);
-        }
-    };
+        });
+    }, []);
     
+    // To do: Improve UX by separate adding dependency only from adding node with dependencies
     const handleAdd = () => {
         const dataNew: Data = JSON.parse(JSON.stringify(data));
         const depsArray = deps.split(',').map(dep => dep.trim());
@@ -160,10 +157,6 @@ const EditorForm = ({ ownedProjects }: { ownedProjects: ProjectRow[] }) => {
     };
     
     const handleUpload = async (data: Data, currentProjectId: string) => {
-        if (!currentProjectId) {
-            alert('Please open an existing diagram or create and open a new one before upload');
-            return;
-        }
         const result = await modifyCollection(data.nodes, currentProjectId);
         if (result.success) alert('Successfully uploaded');
         else alert(result.error);
@@ -187,7 +180,6 @@ const EditorForm = ({ ownedProjects }: { ownedProjects: ProjectRow[] }) => {
             onNewDiagram={projectActions.openCreate}
             onDelete={projectActions.openDelete} 
             currentProjectId={currentProjectId} 
-            handleOpen={handleOpen} 
         />
 
         <main id="diagram" className="flex-1 bg-surface">
@@ -318,6 +310,4 @@ const EditorForm = ({ ownedProjects }: { ownedProjects: ProjectRow[] }) => {
             </div>
         </aside>
     </>);
-};
-
-export default EditorForm;
+}

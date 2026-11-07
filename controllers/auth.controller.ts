@@ -33,6 +33,7 @@ export const signIn = async (state: FormState | undefined, formData: FormData) =
     
     // Create user session
     const token = jwttoken.sign({
+        id: user.id,
         role: user.role,
     });
     const cookieStore = await cookies();
@@ -42,7 +43,7 @@ export const signIn = async (state: FormState | undefined, formData: FormData) =
         secure: process.env.NODE_ENV == 'production',
     });
     
-    redirect('/');
+    redirect('/editor');
 };
 
 export const signOut = async () => {

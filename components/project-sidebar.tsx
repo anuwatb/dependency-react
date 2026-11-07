@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ProjectRow } from "@/hooks/use-project-actions";
 
 interface ProjectSidebarProps {
@@ -5,7 +6,6 @@ interface ProjectSidebarProps {
     onNewDiagram: () => void;
     onDelete: (project: ProjectRow) => void;
     currentProjectId?: string;
-    handleOpen: (projectId: string) => void;
 }
 
 export default function ProjectSidebar ({
@@ -13,8 +13,8 @@ export default function ProjectSidebar ({
     onNewDiagram,
     onDelete,
     currentProjectId, 
-    handleOpen
 }: ProjectSidebarProps) {
+    // To do: Add open from JSON file
     return (
         <aside className="w-64 py-gutter bg-surface-container-low border-r">
             <div className="h-12 px-4">
@@ -30,16 +30,19 @@ export default function ProjectSidebar ({
                                     ? "border-outline-variant bg-accent-primary-dim" 
                                     : "border-transparent hover:bg-[#1e1e23]"}
                             `}>
-                                <button 
+                                <Link 
                                     className="w-full text-left"
-                                    onClick={() => handleOpen(project.id)}
+                                    href={`/editor/${project.id}`} 
+                                    onNavigate={e => {
+                                        if (currentProjectId && !window.confirm('The unsaved diagram (if any) will be deleted.')) e.preventDefault();
+                                    }}
                                 >
                                     <span className={`font-mono-label text-mono-label 
                                         ${project.id == currentProjectId ? "text-[#f0f0f4]" : "text-[#c0c0cc] hover:text-[#f0f0f4]"}
                                     `}>
                                         {project.name}
                                     </span>
-                                </button>
+                                </Link>
                                 <button>
                                     <span 
                                         className="text-on-surface" 

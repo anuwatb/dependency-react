@@ -1,14 +1,19 @@
 'use client';
 
 import { useEffect, useState } from "react";
-import { Data, Status } from "@/app/page";
+import { Data } from "@/app/page";
 import Sankey from "@/components/sankey";
 import { openExistingDiagram, toJSON } from "@/lib/actions/diagram.actions";
 
-const UserForm = () => {
+interface Status {
+    node: string;
+    status: boolean;
+}
+
+export default function UserForm({ currentProjectId }: { currentProjectId: string }) {
     const [data, setData] = useState<Data>({ nodes: [], links: [] });
     useEffect(() => {
-        openExistingDiagram("1")
+        openExistingDiagram(currentProjectId)
             .then(result => {
                 if (result.success) {
                     const dataNew: Data = JSON.parse(JSON.stringify(result.data));
@@ -90,6 +95,4 @@ const UserForm = () => {
             </div>
         </aside>
     </>);
-};
-
-export default UserForm;
+}

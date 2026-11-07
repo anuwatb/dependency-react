@@ -9,7 +9,7 @@ describe('EditorForm Buttons', () => {
     });
 
     test('add button should add nodes and links correctly', async () => {
-        render(<EditorForm ownedProjects={[]} />);
+        render(<EditorForm currentProjectId="" ownedProjects={[]} />);
         
         const nodeNameInput = screen.getByRole('textbox', { name: /^name$/i });
         const depsInput = screen.getByRole('textbox', { name: /^dependencies$/i });

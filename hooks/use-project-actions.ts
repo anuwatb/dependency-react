@@ -11,7 +11,8 @@ type DialogType = "create" | "delete" | null;
 const toSlug = (name: string) => {
     return name.toLowerCase()
         .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-|-$/g, "");
+        .replace(/^-|-$/g, "")
+        .slice(0, 30);// MongoDB Atlas Free database names are limited to 38 bytes
 };
 
 const shortSuffix = () => {
@@ -45,7 +46,6 @@ export const useProjectActions = () => {
     };
     
     const handleNameChange = (value: string) => {
-        // To do: Limit numbers of characters
         setName(value);
         const s = toSlug(value);
         setProjectId(s ? `${s}-${suffix}` : "");

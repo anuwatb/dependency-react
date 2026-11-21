@@ -25,23 +25,21 @@ export default function ProjectSidebar ({
                     {ownedProjects.map(project => (
                         <li key={project.id}>
                             <div className={`
-                                flex rounded-xl border p-3
+                                flex items-center rounded-xl border p-3
                                 ${project.id == currentProjectId 
                                     ? "border-outline-variant bg-accent-primary-dim" 
                                     : "border-transparent hover:bg-[#1e1e23]"}
                             `}>
                                 <Link 
-                                    className="w-full text-left"
+                                    className={`w-full text-left font-mono-label text-mono-label truncate 
+                                        ${project.id == currentProjectId ? "text-[#f0f0f4]" : "text-[#c0c0cc] hover:text-[#f0f0f4]"}
+                                    `}
                                     href={`/editor/${project.id}`} 
                                     onNavigate={e => {
                                         if (currentProjectId && !window.confirm('The unsaved diagram (if any) will be deleted.')) e.preventDefault();
                                     }}
                                 >
-                                    <span className={`font-mono-label text-mono-label 
-                                        ${project.id == currentProjectId ? "text-[#f0f0f4]" : "text-[#c0c0cc] hover:text-[#f0f0f4]"}
-                                    `}>
-                                        {project.name}
-                                    </span>
+                                    {project.name}
                                 </Link>
                                 <button>
                                     <span 

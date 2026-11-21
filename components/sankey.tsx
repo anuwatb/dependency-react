@@ -5,6 +5,7 @@ import { MyNode, Data } from "@/app/page";
 import Tooltip, { TooltipData } from "./tooltip";
 
 interface SankeyProps {
+    form?: string;
     setForm?: Dispatch<SetStateAction<string>>;
     setName?: Dispatch<SetStateAction<string>>;
     setNameNew?: Dispatch<SetStateAction<string>>;
@@ -12,22 +13,31 @@ interface SankeyProps {
     setCategory?: Dispatch<SetStateAction<string>>;
     setDeps?: Dispatch<SetStateAction<string>>;
     setDetails?: Dispatch<SetStateAction<string>>;
+    currentFocus?: string;
     editStatus?: (name: string) => void;
 }
 
 const Sankey = ({ role, data, sankeyProps }: { role: string, data: Data, sankeyProps: SankeyProps }) => {
     const [tooltip, setTooltip] = useState<TooltipData | null>(null);
     const svgRef = useRef<SVGSVGElement | null>(null);
-    const { setForm, setName, setNameNew, setNameFull, setCategory, setDeps, setDetails, editStatus } = sankeyProps;
+    const { form, setForm, setName, setNameNew, setNameFull, setCategory, setDeps, setDetails, currentFocus, editStatus } = sankeyProps;
     
     const toEditNode = (name: string, category: string, deps: string[], fullname: string, details: string) => {
-        setForm!('edit');
-        setName!(name);
-        setNameNew!(name);
-        setNameFull!(fullname);
-        setCategory!(category);
-        setDeps!(deps.join());
-        setDetails!(details);
+        if (form == 'add-dep') {
+            if (currentFocus == 'node-name-input') setName!(name); 
+            else setDeps!(name);
+            setNameFull!('');
+            setCategory!('Default');
+            setDetails!('');
+        } else {
+            setForm!('edit');
+            setName!(name);
+            setNameNew!(name);
+            setNameFull!(fullname);
+            setCategory!(category);
+            setDeps!(deps.join());
+            setDetails!(details);
+        }
     };
     
     const toDelete = (source: string, target: string) => {
@@ -128,7 +138,7 @@ const Sankey = ({ role, data, sankeyProps }: { role: string, data: Data, sankeyP
             svg.call(zoom);
         }
         console.log(data);
-    }, [data]);
+    }, [data, form, currentFocus]);
     return (<>
         <svg ref={svgRef} data-testid="svg" data-testdata={JSON.stringify(data)} />
         {tooltip && <Tooltip role={role} tooltip={tooltip} setTooltip={setTooltip} />}

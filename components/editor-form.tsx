@@ -5,7 +5,8 @@ import Image from "next/image";
 import { Data } from "@/app/page";
 import ProjectDialogs from "./project-dialogs";
 import ProjectSidebar from "./project-sidebar";
-import Sankey from "./sankey";
+import Sankey from "@/components/sankey";
+import AddFormSelector from "@/components/add-form-selector";
 import { ProjectRow, useProjectActions } from "@/hooks/use-project-actions";
 import { openExistingDiagram, toJSON } from "@/lib/actions/diagram.actions";
 import { modifyCollection } from "@/lib/actions/node.actions";
@@ -18,15 +19,10 @@ export default function EditorForm({ currentProjectId, ownedProjects }: { curren
     const [category, setCategory] = useState('Default');
     const [deps, setDeps] = useState('');
     const [details, setDetails] = useState('');
+    const [currentFocus, setCurrentFocus] = useState('node-name-input');
     const [form, setForm] = useState('add');
-    // const [addDisabled, setAddDisabled] = useState(true);
     const [dropdown, setDropdown] = useState(false);
     const projectActions = useProjectActions();
-    
-    // useEffect(() => {
-    //     if (name == '' || deps == '') setAddDisabled(true);
-    //     else setAddDisabled(false);
-    // }, [name, deps]);
     
     useEffect(() => {
         openExistingDiagram(currentProjectId).then(result => {
@@ -50,7 +46,6 @@ export default function EditorForm({ currentProjectId, ownedProjects }: { curren
         });
     }, []);
     
-    // To do: Improve UX by separate adding dependency only from adding node with dependencies
     const handleAdd = () => {
         const dataNew: Data = JSON.parse(JSON.stringify(data));
         const depsArray = deps.split(',').map(dep => dep.trim());
@@ -183,12 +178,15 @@ export default function EditorForm({ currentProjectId, ownedProjects }: { curren
         />
 
         <main id="diagram" className="flex-1 bg-surface">
-            <Sankey role='editor' data={data} sankeyProps={{ setForm, setName, setNameNew, setNameFull, setCategory, setDeps, setDetails }} />
+            <Sankey role='editor' data={data} sankeyProps={{ form, setForm, setName, setNameNew, setNameFull, setCategory, setDeps, setDetails, currentFocus }} />
         </main>
         <aside>
             <div className="p-4 border-b border-outline-variant">
                 <h2 className="font-mono-label text-on-surface text-[12px] tracking-wider">PROPERTIES</h2>
             </div>
+
+            {(form == 'add' || form == 'add-dep') && <AddFormSelector form={ form } setForm={setForm} />}
+
             <div id="node-input" className="p-gutter space-y-4">
                 <label htmlFor="node-name-input">
                     NAME
@@ -199,19 +197,22 @@ export default function EditorForm({ currentProjectId, ownedProjects }: { curren
                     type="text"
                     value={form == 'edit' ? nameNew : name}
                     onChange={e => form == 'edit' ? setNameNew(e.target.value.trim()) : setName(e.target.value.trim())}
+                    onFocus={() => form == 'add-dep' && setCurrentFocus('node-name-input')}
                     placeholder="Short name for displaying and reference"
                 />
-                <label htmlFor="node-fullname-input">
-                    FULL NAME
-                </label>
-                <input
-                    id="node-fullname-input"
-                    disabled={form == 'delete'}
-                    type="text"
-                    value={nameFull}
-                    onChange={e => setNameFull(e.target.value)}
-                    placeholder="Full name"
-                />
+                {form != 'add-dep' && (<>
+                    <label htmlFor="node-fullname-input">
+                        FULL NAME
+                    </label>
+                    <input
+                        id="node-fullname-input"
+                        disabled={form == 'delete'}
+                        type="text"
+                        value={nameFull}
+                        onChange={e => setNameFull(e.target.value)}
+                        placeholder="Full name"
+                    />
+                </>)}
                 <label htmlFor="deps-input">
                     DEPENDENCIES
                 </label>
@@ -221,32 +222,35 @@ export default function EditorForm({ currentProjectId, ownedProjects }: { curren
                     type="text"
                     value={deps}
                     onChange={e => setDeps(e.target.value)}
+                    onFocus={() => form == 'add-dep' && setCurrentFocus('deps-input')}
                     placeholder="Depends on"
                 />
-                <label htmlFor="node-category-input">
-                    CATEGORY
-                </label>
-                <input
-                    id="node-category-input"
-                    disabled={form == 'delete'}
-                    type="text"
-                    value={category}
-                    onChange={e => setCategory(e.target.value.trim() == '' ? 'Default' : e.target.value.trim())}
-                />
-                <label htmlFor="node-details-input">
-                    DETAILS
-                </label>
-                <input
-                    id="node-details-input"
-                    disabled={form == 'delete'}
-                    type="text"
-                    value={details}
-                    onChange={e => setDetails(e.target.value)}
-                    placeholder="Details"
-                />
+                {form != 'add-dep' && (<>
+                    <label htmlFor="node-category-input">
+                        CATEGORY
+                    </label>
+                    <input
+                        id="node-category-input"
+                        disabled={form == 'delete'}
+                        type="text"
+                        value={category}
+                        onChange={e => setCategory(e.target.value.trim() == '' ? 'Default' : e.target.value.trim())}
+                    />
+                    <label htmlFor="node-details-input">
+                        DETAILS
+                    </label>
+                    <input
+                        id="node-details-input"
+                        disabled={form == 'delete'}
+                        type="text"
+                        value={details}
+                        onChange={e => setDetails(e.target.value)}
+                        placeholder="Details"
+                    />
+                </>)}
             </div>
             <div className="p-gutter border-t border-outline-variant grid grid-cols-2 gap-3">
-                {form == 'add' && (
+                {(form == 'add' || form == 'add-dep') && (
                     <button
                         disabled={(name == '' || deps == '') ? true : false}
                         className="col-span-2 btn-normal disabled:opacity-65 disabled:cursor-not-allowed"
@@ -299,7 +303,7 @@ export default function EditorForm({ currentProjectId, ownedProjects }: { curren
                         <div className="absolute top-full rounded-lg bg-primary">
                             {actions.map(action => (<button
                                 key={action.id}
-                                className="block text-left p-2 font-mono-label text-mono-label hover:opacity-90"
+                                className="w-full block text-left p-2 font-mono-label text-mono-label hover:opacity-90"
                                 onClick={() => { setCurrentAction(action); setDropdown(false); }}
                             >
                                 {action.label}

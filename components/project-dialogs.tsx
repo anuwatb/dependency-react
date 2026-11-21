@@ -21,6 +21,7 @@ export default function ProjectDialogs ({
                 <input 
                     placeholder="Diagram name" 
                     value={name}
+                    maxLength={100}
                     onChange={(e) => handleNameChange(e.target.value)} 
                 />
                 <p className="text-xs text-[#808090]">{projectId}</p>
